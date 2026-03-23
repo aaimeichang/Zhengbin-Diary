@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hybrid Layout Fixed - Click to Show Text</title>
+<title>Hybrid Layout Mobile Random</title>
 
 <style>
 body {
@@ -24,26 +24,21 @@ body {
   width: 260px;
   background: white;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  transition: opacity 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease;
-  
-  /* 提示可以點擊 */
-  cursor: pointer; 
+  transition: opacity 0.5s ease, transform 0.3s ease;
+  cursor: pointer;
 
-  /* 🔥 核心：預設隱藏並移出視線，防止出現在左上角 */
-  opacity: 0; 
+  opacity: 0;
   top: -500px;
   left: -500px;
 }
 
-/* 固定卡片預設就要顯示 */
 .card.fixed {
   opacity: 1;
 }
 
-/* 點擊選中時的樣式 (例如加強陰影) */
 .card.active {
   box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-  z-index: 50; /* 確保選中的卡片在最上層 */
+  z-index: 50;
 }
 
 .card img {
@@ -51,10 +46,9 @@ body {
   display: block;
 }
 
-/* ===== 說明框 (預設隱藏) ===== */
 .overlay {
   position: absolute;
-  top: -15px; /* 稍微降低一點點起點 */
+  top: -15px;
   left: 20px;
   background: rgba(255,255,255,0.98);
   border: 1px solid black;
@@ -63,42 +57,32 @@ body {
   font-size: 11px;
   font-family: monospace;
   z-index: 10;
-  pointer-events: none; /* 避免擋住點擊 */
+  pointer-events: none;
 
-  /* 初始狀態：完全透明 ＆ 隱藏 */
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease; /* 加上所有屬性的過渡 */
+  transition: all 0.3s ease;
 }
 
-/* 👉 當卡片擁有 .active 類別時才顯示 */
 .card.active .overlay {
   opacity: 1;
   visibility: visible;
-  top: -30px; /* 打開時往上飄 */
+  top: -30px;
 }
 
-/* ===== 固定卡片初始位置 ===== */
+/* 固定卡片 */
 .fixed:nth-of-type(1) { top: 100px; left: 15%; transform: rotate(-3deg); }
 .fixed:nth-of-type(2) { top: 180px; left: 55%; transform: rotate(4deg); }
 
-/* ===== 手機版支援 ===== */
+/* ✅ 手機版：保留 absolute，但縮小卡片 */
 @media (max-width: 768px) {
-  .container { position: relative; padding-top: 50px; }
-  .card { 
-    position: relative !important; 
-    margin: 40px auto; 
-    left: auto !important; 
-    top: auto !important; 
-    transform: none !important;
-    opacity: 1 !important;
-  }
-  .card.active .overlay {
-    top: -40px; /* 手機版飄高一點 */
+  .card {
+    width: 180px;
   }
 }
 </style>
 </head>
+
 <body>
 
 <div class="container" id="container">
@@ -115,17 +99,19 @@ body {
 
 <script>
 const container = document.getElementById("container");
-const cardWidth = 260;
-const cardHeight = 220;
-const padding = 50; // 碰撞緩衝距離
+const isMobile = window.innerWidth < 768;
 
-// 1. 產生資料
+const cardWidth = isMobile ? 180 : 260;
+const cardHeight = isMobile ? 160 : 220;
+const padding = 40;
+
+// 資料
 const data = Array.from({ length: 50 }, (_, i) => ({
   img: `https://picsum.photos/400/300?random=${i}`,
   text: `PROJECT ${i + 1}`
 }));
 
-// 2. 渲染 DOM 與繫結點擊事件
+// 建立卡片
 data.forEach(item => {
   const card = document.createElement("div");
   card.className = "card random";
@@ -133,16 +119,12 @@ data.forEach(item => {
     <img src="${item.img}" loading="lazy">
     <div class="overlay">${item.text}</div>
   `;
-  
-  // 👉 新增：點擊照片切換 .active 狀態
-  card.addEventListener('click', function(e) {
-    e.stopPropagation(); // 阻止冒泡到 document
 
-    // 如果這張卡片已經是 active，就關掉它
+  card.addEventListener('click', function(e) {
+    e.stopPropagation();
     if(this.classList.contains('active')) {
       this.classList.remove('active');
     } else {
-      // 否則，先關掉所有其他的 active 卡片，再打開這張
       closeAllOverlays();
       this.classList.add('active');
     }
@@ -151,35 +133,34 @@ data.forEach(item => {
   container.appendChild(card);
 });
 
-// 手動繫結固定卡片的點擊事件 (因為它們不是動態產生的)
+// 固定卡片事件
 document.querySelectorAll('.card.fixed').forEach(card => {
-    card.addEventListener('click', function(e) {
-        e.stopPropagation();
-        if(this.classList.contains('active')) {
-            this.classList.remove('active');
-        } else {
-            closeAllOverlays();
-            this.classList.add('active');
-        }
-    });
+  card.addEventListener('click', function(e) {
+    e.stopPropagation();
+    if(this.classList.contains('active')) {
+      this.classList.remove('active');
+    } else {
+      closeAllOverlays();
+      this.classList.add('active');
+    }
+  });
 });
 
-// 👉 新增：輔助函式，關掉所有打開的說明框
 function closeAllOverlays() {
   document.querySelectorAll('.card.active').forEach(c => {
     c.classList.remove('active');
   });
 }
 
-// 👉 新增：點擊頁面空白處，收起所有說明框
 document.addEventListener('click', closeAllOverlays);
 
 
-// 3. 排版邏輯 (維持之前的防左上角邏輯)
+// ===== 排版 =====
 const randomCards = document.querySelectorAll(".card.random");
 const fixedCards = document.querySelectorAll(".card.fixed");
 let placedBoxes = [];
 
+// 固定卡片加入碰撞區
 fixedCards.forEach(card => {
   placedBoxes.push({
     left: card.offsetLeft - padding,
@@ -192,16 +173,19 @@ fixedCards.forEach(card => {
 randomCards.forEach((card, i) => {
   let placedOK = false;
   let tries = 0;
-  
-  const safeLeft = 150; // 避開左側 150px
-  const safeTop = 250;  // 避開頂部 250px
+
+  // ✅ 手機範圍限制（避免太擠）
+  const safeLeft = isMobile ? 20 : 150;
+  const safeTop = isMobile ? 200 : 250;
 
   while (!placedOK && tries < 300) {
-    let section = Math.floor(i / 3); 
-    
-    let rangeX = window.innerWidth - cardWidth - safeLeft - 50;
-    let x = safeLeft + Math.random() * Math.max(rangeX, 100);
-    let y = safeTop + (section * 350) + Math.random() * 200;
+
+    let section = Math.floor(i / (isMobile ? 2 : 3));
+
+    let rangeX = window.innerWidth - cardWidth - safeLeft - 20;
+    let x = safeLeft + Math.random() * Math.max(rangeX, 50);
+
+    let y = safeTop + (section * (isMobile ? 250 : 350)) + Math.random() * 150;
 
     let newBox = {
       left: x - padding,
@@ -215,24 +199,28 @@ randomCards.forEach((card, i) => {
                newBox.bottom < box.top || newBox.top > box.bottom);
     });
 
-    if (!collide || tries === 299) { 
+    if (!collide || tries === 299) {
       placedOK = true;
-      let rotate = (Math.random() - 0.5) * 10;
-      
+
+      let rotate = (Math.random() - 0.5) * (isMobile ? 6 : 10);
+
       card.style.left = x + "px";
       card.style.top = y + "px";
       card.style.transform = `rotate(${rotate}deg)`;
-      card.style.opacity = "1"; // 計算完畢才顯示
-      
+      card.style.opacity = "1";
+
       placedBoxes.push(newBox);
     }
+
     tries++;
   }
 });
 
+// 高度撐開
 const maxBottom = Math.max(...placedBoxes.map(b => b.bottom), window.innerHeight);
 container.style.height = (maxBottom + 200) + "px";
 
 </script>
+
 </body>
 </html>
