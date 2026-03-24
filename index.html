@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hybrid Layout Mobile Random</title>
+<title>Custom Hybrid Layout</title>
 
 <style>
 body {
   margin: 0;
   background: #eaeaea;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   overflow-x: hidden;
 }
 
@@ -26,19 +26,19 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
   transition: opacity 0.5s ease, transform 0.3s ease;
   cursor: pointer;
-
-  opacity: 0;
-  top: -500px;
-  left: -500px;
+  /* 初始隱藏，由 JS 計算完後顯示 */
+  opacity: 0; 
 }
 
+/* 固定卡片樣式 */
 .card.fixed {
   opacity: 1;
+  z-index: 5;
 }
 
 .card.active {
-  box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-  z-index: 50;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  z-index: 100 !important;
 }
 
 .card img {
@@ -46,6 +46,7 @@ body {
   display: block;
 }
 
+/* 懸浮標籤 */
 .overlay {
   position: absolute;
   top: -15px;
@@ -58,7 +59,6 @@ body {
   font-family: monospace;
   z-index: 10;
   pointer-events: none;
-
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
@@ -70,15 +70,16 @@ body {
   top: -30px;
 }
 
-/* 固定卡片 */
-.fixed:nth-of-type(1) { top: 100px; left: 15%; transform: rotate(-3deg); }
-.fixed:nth-of-type(2) { top: 180px; left: 55%; transform: rotate(4deg); }
+/* 特定固定卡片位置 */
+#hero-1 { top: 80px; left: 10%; transform: rotate(-2deg); }
+#hero-2 { top: 150px; left: 50%; transform: rotate(3deg); }
 
-/* ✅ 手機版：保留 absolute，但縮小卡片 */
+/* RWD 手機版微調 */
 @media (max-width: 768px) {
-  .card {
-    width: 180px;
-  }
+  .card { width: 160px; }
+  .overlay { width: 120px; }
+  #hero-1 { left: 5%; }
+  #hero-2 { left: 45%; }
 }
 </style>
 </head>
@@ -86,106 +87,76 @@ body {
 <body>
 
 <div class="container" id="container">
-  <div class="card fixed">
-    <img src="https://picsum.photos/400/300?1">
-    <div class="overlay">HERO IMAGE A</div>
+  <div class="card fixed" id="hero-1">
+    <img src="https://picsum.photos/400/300?seed=main1">
+    <div class="overlay">FEATURED: BRANDING 2026</div>
   </div>
 
-  <div class="card fixed">
-    <img src="https://picsum.photos/400/300?2">
-    <div class="overlay">HERO IMAGE B</div>
+  <div class="card fixed" id="hero-2">
+    <img src="https://picsum.photos/400/300?seed=main2">
+    <div class="overlay">EDITORIAL: NEW VISION</div>
   </div>
 </div>
 
 <script>
+/**
+ * 💡 在這裡自定義你的每一張卡片內容
+ * img: 圖片網址
+ * title: 顯示的文字內容
+ */
+const projectData = [
+  { img: "images/project-01.jpg", title: "城市建築系列" },
+  { img: "images/project-02.png", title: "品牌視覺設計" },
+  { img: "images/project-03.jpg", title: "2026 攝影作品" },
+  // ... 依此類推
+];
+
 const container = document.getElementById("container");
 const isMobile = window.innerWidth < 768;
+const cardWidth = isMobile ? 160 : 260;
+const cardHeight = isMobile ? 140 : 220;
+const padding = 30; // 碰撞檢查的間距
 
-const cardWidth = isMobile ? 180 : 260;
-const cardHeight = isMobile ? 160 : 220;
-const padding = 40;
-
-// 資料
-const data = Array.from({ length: 50 }, (_, i) => ({
-  img: `https://picsum.photos/400/300?random=${i}`,
-  text: `PROJECT ${i + 1}`
-}));
-
-// 建立卡片
-data.forEach(item => {
-  const card = document.createElement("div");
-  card.className = "card random";
-  card.innerHTML = `
-    <img src="${item.img}" loading="lazy">
-    <div class="overlay">${item.text}</div>
-  `;
-
-  card.addEventListener('click', function(e) {
-    e.stopPropagation();
-    if(this.classList.contains('active')) {
-      this.classList.remove('active');
-    } else {
-      closeAllOverlays();
-      this.classList.add('active');
-    }
-  });
-
-  container.appendChild(card);
-});
-
-// 固定卡片事件
-document.querySelectorAll('.card.fixed').forEach(card => {
-  card.addEventListener('click', function(e) {
-    e.stopPropagation();
-    if(this.classList.contains('active')) {
-      this.classList.remove('active');
-    } else {
-      closeAllOverlays();
-      this.classList.add('active');
-    }
-  });
-});
-
-function closeAllOverlays() {
-  document.querySelectorAll('.card.active').forEach(c => {
-    c.classList.remove('active');
-  });
-}
-
-document.addEventListener('click', closeAllOverlays);
-
-
-// ===== 排版 =====
-const randomCards = document.querySelectorAll(".card.random");
-const fixedCards = document.querySelectorAll(".card.fixed");
 let placedBoxes = [];
 
-// 固定卡片加入碰撞區
-fixedCards.forEach(card => {
+// 1. 初始化固定卡片的碰撞區
+document.querySelectorAll('.card.fixed').forEach(card => {
   placedBoxes.push({
     left: card.offsetLeft - padding,
     right: card.offsetLeft + cardWidth + padding,
     top: card.offsetTop - padding,
     bottom: card.offsetTop + cardHeight + padding
   });
+  
+  // 綁定點擊事件
+  card.addEventListener('click', toggleCard);
 });
 
-randomCards.forEach((card, i) => {
+// 2. 動態生成隨機卡片
+projectData.forEach((item, i) => {
+  const card = document.createElement("div");
+  card.className = "card random";
+  card.innerHTML = `
+    <img src="${item.img}" loading="lazy">
+    <div class="overlay">${item.title}</div>
+  `;
+
+  card.addEventListener('click', toggleCard);
+  container.appendChild(card);
+
+  // 3. 隨機排版算法 (避免碰撞)
   let placedOK = false;
   let tries = 0;
+  const safeLeft = isMobile ? 15 : 100;
+  const safeTop = isMobile ? 350 : 400;
 
-  // ✅ 手機範圍限制（避免太擠）
-  const safeLeft = isMobile ? 20 : 150;
-  const safeTop = isMobile ? 200 : 250;
-
-  while (!placedOK && tries < 300) {
-
-    let section = Math.floor(i / (isMobile ? 2 : 3));
-
-    let rangeX = window.innerWidth - cardWidth - safeLeft - 20;
-    let x = safeLeft + Math.random() * Math.max(rangeX, 50);
-
-    let y = safeTop + (section * (isMobile ? 250 : 350)) + Math.random() * 150;
+  while (!placedOK && tries < 500) {
+    let section = Math.floor(i / (isMobile ? 2 : 3)); 
+    let rangeX = window.innerWidth - cardWidth - (safeLeft * 2);
+    let x = safeLeft + Math.random() * rangeX;
+    
+    // 讓 y 軸根據索引分段增加，避免全部擠在頂部
+    let y = safeTop + (section * (isMobile ? 220 : 350)) + (Math.random() * 100);
 
     let newBox = {
       left: x - padding,
@@ -194,16 +165,16 @@ randomCards.forEach((card, i) => {
       bottom: y + cardHeight + padding
     };
 
+    // 碰撞偵測
     let collide = placedBoxes.some(box => {
       return !(newBox.right < box.left || newBox.left > box.right || 
                newBox.bottom < box.top || newBox.top > box.bottom);
     });
 
-    if (!collide || tries === 299) {
+    if (!collide || tries === 499) {
       placedOK = true;
-
-      let rotate = (Math.random() - 0.5) * (isMobile ? 6 : 10);
-
+      let rotate = (Math.random() - 0.5) * (isMobile ? 8 : 15);
+      
       card.style.left = x + "px";
       card.style.top = y + "px";
       card.style.transform = `rotate(${rotate}deg)`;
@@ -211,14 +182,27 @@ randomCards.forEach((card, i) => {
 
       placedBoxes.push(newBox);
     }
-
     tries++;
   }
 });
 
-// 高度撐開
+// 互動功能
+function toggleCard(e) {
+  e.stopPropagation();
+  const isActive = this.classList.contains('active');
+  closeAll();
+  if (!isActive) this.classList.add('active');
+}
+
+function closeAll() {
+  document.querySelectorAll('.card').forEach(c => c.classList.remove('active'));
+}
+
+document.addEventListener('click', closeAll);
+
+// 自動調整容器總高度以利捲動
 const maxBottom = Math.max(...placedBoxes.map(b => b.bottom), window.innerHeight);
-container.style.height = (maxBottom + 200) + "px";
+container.style.height = (maxBottom + 100) + "px";
 
 </script>
 
