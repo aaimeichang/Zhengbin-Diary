@@ -35,9 +35,9 @@ body {
   width: 260px;
   background: white;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  transition: opacity 0.8s ease, transform 0.3s ease; /* 增加淡入時間讓載入更優雅 */
+  transition: opacity 0.8s ease, transform 0.3s ease;
   cursor: pointer;
-  opacity: 0; /* 初始隱藏，圖片載入完成才顯示 */
+  opacity: 0; 
 }
 
 .card.fixed { z-index: 5; }
@@ -48,7 +48,7 @@ body {
 
 .card img { width: 100%; display: block; }
 
-/* 🏷️ 隨機邊緣標籤樣式 */
+/* 🏷️ 標籤樣式：移除彈跳感 */
 .overlay {
   position: absolute;
   background: rgba(255,255,255,0.98);
@@ -61,30 +61,25 @@ body {
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* ✅ 改為簡單的 ease-in-out，並縮短時間，讓它平滑出現 */
+  transition: opacity 0.3s ease-in-out; 
 }
 
+/* 點擊後僅改變透明度，不移動位置 */
 .card.active .overlay {
   opacity: 1;
   visibility: visible;
 }
 
-/* 四個角落定位 */
-.pos-top-left { top: 0; left: -15px; }
-.card.active .pos-top-left { top: -25px; }
+/* 固定方位（移除原本 .active 時的 top/bottom 位移） */
+.pos-top-left { top: -10px; left: -10px; }
+.pos-top-right { top: -10px; right: -10px; }
+.pos-bottom-left { bottom: -10px; left: -10px; }
+.pos-bottom-right { bottom: -10px; right: -10px; }
 
-.pos-top-right { top: 0; right: -15px; }
-.card.active .pos-top-right { top: -25px; }
-
-.pos-bottom-left { bottom: 0; left: -15px; }
-.card.active .pos-bottom-left { bottom: -25px; }
-
-.pos-bottom-right { bottom: 0; right: -15px; }
-.card.active .pos-bottom-right { bottom: -25px; }
-
-/* 固定卡片初始位置 */
+/* 固定卡片位置 */
 #hero-1 { top: 80px; left: 10%; transform: rotate(-2deg); opacity: 1; }
-#hero-2 { top: 150px; left: 50%; transform: rotate(3deg); opacity: 1; }
+#hero-2 { top: 150px; left: 55%; transform: rotate(3deg); opacity: 1; }
 
 @media (max-width: 768px) {
   .card { width: 160px; }
@@ -110,7 +105,7 @@ body {
 </div>
 
 <script>
-// ===== 1. 背景海流動畫 (Ocean Flow) =====
+// ===== 1. 背景海流動畫 =====
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
 let lines = [];
@@ -119,7 +114,7 @@ let tick = 0;
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  createLines(); // 視窗縮放時重新生成
+  createLines();
 }
 window.addEventListener('resize', resize);
 resize();
@@ -133,7 +128,7 @@ function createLines() {
       amplitude: Math.random() * 50 + 20,
       speed: Math.random() * 0.02 + 0.005,
       offset: Math.random() * 100,
-      color: `rgba(0, 80, 150, ${Math.random() * 0.08 + 0.03})` // 調整為微弱藍色
+      color: `rgba(0, 80, 150, ${Math.random() * 0.08 + 0.03})`
     });
   }
 }
@@ -157,7 +152,7 @@ function drawFlow() {
 }
 drawFlow();
 
-// ===== 2. 專案資料與隨機排版 =====
+// ===== 2. 專案資料 =====
 const projectData = [
   { img: "images/IMG_0407.jpeg", title: "第一天到住宿報到，這是接下來一個月要待的床位" },
   { img: "images/IMG_0417.jpeg", title: "工作室地點樓下的小貓，總是出現在甜點店前附近的位置" },
@@ -177,7 +172,6 @@ const positions = ["pos-top-left", "pos-top-right", "pos-bottom-left", "pos-bott
 
 let placedBoxes = [];
 
-// 初始化固定卡片
 document.querySelectorAll('.card.fixed').forEach(card => {
   placedBoxes.push({
     left: card.offsetLeft - padding,
@@ -188,7 +182,6 @@ document.querySelectorAll('.card.fixed').forEach(card => {
   card.addEventListener('click', toggleCard);
 });
 
-// 生成隨機卡片
 projectData.forEach((item, i) => {
   const card = document.createElement("div");
   card.className = "card random";
@@ -202,13 +195,11 @@ projectData.forEach((item, i) => {
   card.addEventListener('click', toggleCard);
   container.appendChild(card);
 
-  // 💡 優化：確保圖片載入後才顯示 (解決圖片跑得慢的問題)
   const imgElement = card.querySelector('img');
   imgElement.onload = () => {
     card.style.opacity = "1";
   };
 
-  // 隨機排版
   let placedOK = false;
   let tries = 0;
   const safeLeft = isMobile ? 15 : 100;
