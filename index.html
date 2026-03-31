@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zhengbin Diary</title>
+<title>Zhengbin Diary | Flat Design</title>
 
 <style>
 body {
@@ -13,7 +13,7 @@ body {
   overflow-x: hidden;
 }
 
-/* 🎨 背景 Canvas */
+/* 🎨 背景 Canvas (你的 sin 波浪圓點邏輯) */
 #bg-canvas {
   position: fixed;
   top: 0;
@@ -34,20 +34,30 @@ body {
   position: absolute;
   width: 260px;
   background: white;
-  transition: transform 0.3s ease; /* 僅保留旋轉的微調，移除透明度動畫 */
+  /* 🛑 已移除所有 box-shadow */
+  border: 1px solid #d0d0d0; /* 加入淡淡的邊框代替陰影，增加平板感 */
+  transition: transform 0.3s ease; /* 僅保留旋轉的微調 */
   cursor: pointer;
-  opacity: 0; 
+  opacity: 0; /* 初始隱藏，圖片載入完成才顯示 (針對隨機卡片) */
 }
 
-.card.fixed { z-index: 5; }
+/* 固定卡片：即時顯示，無陰影 */
+.card.fixed { 
+  z-index: 5; 
+  opacity: 1 !important; 
+  visibility: visible !important;
+  border: 2px solid black; /* 固定卡片使用較粗的黑邊框，突出重點 */
+}
+
 .card.active {
-  box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+  /* 🛑 已移除 active 時的陰影 */
+  border: 2px solid black; /* 點擊後強化邊框 */
   z-index: 100 !important;
 }
 
 .card img { width: 100%; display: block; }
 
-/* 🏷️ 標籤樣式：完全移除 transition (不用平滑) */
+/* 🏷️ 標籤樣式：瞬間彈出，無平滑，無陰影 */
 .overlay {
   position: absolute;
   background: rgba(255,255,255,0.98);
@@ -59,24 +69,24 @@ body {
   z-index: 10;
   pointer-events: none;
   
-  /* 預設隱藏 */
+  /* 預設隱藏 (使用 display 達到瞬间彈出) */
   display: none; 
 }
 
-/* ✅ 點擊後直接顯示，不使用 opacity 動畫 */
+/* 點擊後瞬間出現 */
 .card.active .overlay {
   display: block;
 }
 
-/* 方位定位 */
+/* 方位定位 (固定貼合邊緣，無彈跳) */
 .pos-top-left { top: -10px; left: -10px; }
 .pos-top-right { top: -10px; right: -10px; }
 .pos-bottom-left { bottom: -10px; left: -10px; }
 .pos-bottom-right { bottom: -10px; right: -10px; }
 
-/* 固定卡片位置 */
-#hero-1 { top: 80px; left: 10%; transform: rotate(-2deg); opacity: 1; }
-#hero-2 { top: 150px; left: 55%; transform: rotate(3deg); opacity: 1; }
+/* 固定卡片位置 (立刻出現) */
+#hero-1 { top: 80px; left: 10%; transform: rotate(-2deg); }
+#hero-2 { top: 150px; left: 55%; transform: rotate(3deg); }
 
 @media (max-width: 768px) {
   .card { width: 160px; }
@@ -102,54 +112,54 @@ body {
 </div>
 
 <script>
-// ===== 1. 背景海流動畫 =====
+// ===== 1. 背景動畫 (你的 p5.js sin 波浪圓點邏輯翻譯版) =====
 const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
-let lines = [];
-let tick = 0;
+let t = 0; // 你的時間變數
 
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
-  createLines();
 }
 window.addEventListener('resize', resize);
 resize();
 
-function createLines() {
-  lines = [];
-  const lineCount = 12; 
-  for (let i = 0; i < lineCount; i++) {
-    lines.push({
-      y: (canvas.height / lineCount) * i,
-      amplitude: Math.random() * 50 + 20,
-      speed: Math.random() * 0.02 + 0.005,
-      offset: Math.random() * 100,
-      color: `rgba(0, 80, 150, ${Math.random() * 0.08 + 0.03})`
-    });
-  }
-}
-
-function drawFlow() {
+function drawBg() {
+  // 清除畫布
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  tick += 0.01;
-  lines.forEach(line => {
-    ctx.beginPath();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = line.color;
-    for (let x = 0; x <= canvas.width; x += 10) {
-      const y = line.y + Math.sin(x * 0.002 + tick + line.offset) * line.amplitude + 
-                Math.sin(x * 0.005 + tick) * (line.amplitude / 2);
-      if (x === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-  });
-  requestAnimationFrame(drawFlow);
-}
-drawFlow();
 
-// ===== 2. 專案資料 =====
+  // 1. 計算總共要畫多少個點 (填滿螢幕寬度)
+  const spacing = 25; // 圓點間距
+  const dotCount = Math.ceil(canvas.width / spacing) + 1;
+  
+  // 2. 畫出多層圓點波浪 (模仿海流)
+  for (let layer = 0; layer < 5; layer++) {
+    const layerOffset = layer * (canvas.height / 5); // 讓波浪分佈在全螢幕垂直位置
+    
+    for (let i = 0; i < dotCount; i++) {
+      // 這是你原始程式碼的 sin 波浪邏輯：
+      let x = i * spacing;
+      // 我們加上 layerOffset 讓它分佈在全螢幕，並微調 sin 參數讓波浪更美
+      let y = (canvas.height / 10) + layerOffset + 50 * Math.sin(i * 0.3 + t + layer);
+
+      // 繪製圓點
+      ctx.beginPath();
+      // 使用半透明的藍綠色，更有海港感
+      ctx.fillStyle = `rgba(0, 150, 180, ${0.15 - layer * 0.02})`; 
+      ctx.arc(x, y, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // 3. 你的時間增加速度
+  t += 0.03; 
+  
+  requestAnimationFrame(drawBg);
+}
+
+drawBg();
+
+// ===== 2. 專案資料與隨機排版 =====
 const projectData = [
   { img: "images/IMG_0407.jpeg", title: "第一天到住宿報到，這是接下來一個月要待的床位" },
   { img: "images/IMG_0417.jpeg", title: "工作室地點樓下的小貓，總是出現在甜點店前附近的位置" },
@@ -169,6 +179,7 @@ const positions = ["pos-top-left", "pos-top-right", "pos-bottom-left", "pos-bott
 
 let placedBoxes = [];
 
+// 初始化固定卡片 (立刻出現)
 document.querySelectorAll('.card.fixed').forEach(card => {
   placedBoxes.push({
     left: card.offsetLeft - padding,
@@ -179,9 +190,10 @@ document.querySelectorAll('.card.fixed').forEach(card => {
   card.addEventListener('click', toggleCard);
 });
 
+// 生成隨機卡片
 projectData.forEach((item, i) => {
   const card = document.createElement("div");
-  card.className = "card random";
+  card.className = "card random"; // 加上 random class
   const randomPos = positions[Math.floor(Math.random() * positions.length)];
 
   card.innerHTML = `
@@ -192,12 +204,13 @@ projectData.forEach((item, i) => {
   card.addEventListener('click', toggleCard);
   container.appendChild(card);
 
-  // 圖片載入後顯示卡片
+  // 💡 優化：確保隨機圖片載入後才淡入 (解決圖片跑得慢的問題)
   const imgElement = card.querySelector('img');
   imgElement.onload = () => {
     card.style.opacity = "1";
   };
 
+  // 隨機排版
   let placedOK = false;
   let tries = 0;
   const safeLeft = isMobile ? 15 : 100;
