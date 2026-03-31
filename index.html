@@ -13,6 +13,7 @@ body {
   overflow-x: hidden;
 }
 
+/* 🎨 背景 Canvas */
 #bg-canvas {
   position: fixed;
   top: 0;
@@ -34,62 +35,60 @@ body {
   width: 260px;
   background: white;
   box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-  transition: opacity 0.5s ease, transform 0.3s ease;
+  transition: opacity 0.8s ease, transform 0.3s ease; /* 增加淡入時間讓載入更優雅 */
   cursor: pointer;
-  /* 初始隱藏，由 JS 計算完後顯示 */
-  opacity: 0; 
+  opacity: 0; /* 初始隱藏，圖片載入完成才顯示 */
 }
 
-/* 固定卡片樣式 */
-.card.fixed {
-  opacity: 1;
-  z-index: 5;
-}
-
+.card.fixed { z-index: 5; }
 .card.active {
   box-shadow: 0 15px 40px rgba(0,0,0,0.25);
   z-index: 100 !important;
 }
 
-.card img {
-  width: 100%;
-  display: block;
-}
+.card img { width: 100%; display: block; }
 
-/* 懸浮標籤 */
+/* 🏷️ 隨機邊緣標籤樣式 */
 .overlay {
   position: absolute;
-  top: -15px;
-  left: 20px;
   background: rgba(255,255,255,0.98);
   border: 1px solid black;
-  padding: 10px;
-  width: 180px;
+  padding: 8px 10px;
+  width: 160px;
   font-size: 11px;
   font-family: monospace;
   z-index: 10;
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .card.active .overlay {
   opacity: 1;
   visibility: visible;
-  top: -30px;
 }
 
-/* 特定固定卡片位置 */
-#hero-1 { top: 80px; left: 10%; transform: rotate(-2deg); }
-#hero-2 { top: 150px; left: 50%; transform: rotate(3deg); }
+/* 四個角落定位 */
+.pos-top-left { top: 0; left: -15px; }
+.card.active .pos-top-left { top: -25px; }
 
-/* RWD 手機版微調 */
+.pos-top-right { top: 0; right: -15px; }
+.card.active .pos-top-right { top: -25px; }
+
+.pos-bottom-left { bottom: 0; left: -15px; }
+.card.active .pos-bottom-left { bottom: -25px; }
+
+.pos-bottom-right { bottom: 0; right: -15px; }
+.card.active .pos-bottom-right { bottom: -25px; }
+
+/* 固定卡片初始位置 */
+#hero-1 { top: 80px; left: 10%; transform: rotate(-2deg); opacity: 1; }
+#hero-2 { top: 150px; left: 50%; transform: rotate(3deg); opacity: 1; }
+
 @media (max-width: 768px) {
   .card { width: 160px; }
-  .overlay { width: 120px; }
-  #hero-1 { left: 5%; }
-  #hero-2 { left: 45%; }
+  .overlay { width: 110px; font-size: 10px; }
 }
 </style>
 </head>
@@ -97,21 +96,22 @@ body {
 <body>
   
 <canvas id="bg-canvas"></canvas>
+
 <div class="container" id="container">
   <div class="card fixed" id="hero-1">
     <img src="https://picsum.photos/400/300?seed=main1">
-    <div class="overlay">FEATURED: BRANDING 2026</div>
+    <div class="overlay pos-top-left">FEATURED: BRANDING 2026</div>
   </div>
 
   <div class="card fixed" id="hero-2">
     <img src="https://picsum.photos/400/300?seed=main2">
-    <div class="overlay">EDITORIAL: NEW VISION</div>
+    <div class="overlay pos-top-right">EDITORIAL: NEW VISION</div>
   </div>
 </div>
 
 <script>
-
-  const canvas = document.getElementById('bg-canvas');
+// ===== 1. 背景海流動畫 (Ocean Flow) =====
+const canvas = document.getElementById('bg-canvas');
 const ctx = canvas.getContext('2d');
 let lines = [];
 let tick = 0;
@@ -119,21 +119,21 @@ let tick = 0;
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
+  createLines(); // 視窗縮放時重新生成
 }
 window.addEventListener('resize', resize);
 resize();
 
-// 建立每一條海流波浪
 function createLines() {
   lines = [];
-  const lineCount = 12; // 線條數量
+  const lineCount = 12; 
   for (let i = 0; i < lineCount; i++) {
     lines.push({
       y: (canvas.height / lineCount) * i,
-      amplitude: Math.random() * 50 + 20, // 振幅
-      speed: Math.random() * 0.02 + 0.005, // 速度
-      offset: Math.random() * 100, // 初始偏移
-      color: `rgba(0, 0, 0, ${Math.random() * 0.1 + 0.05})` // 淡淡的海藍色
+      amplitude: Math.random() * 50 + 20,
+      speed: Math.random() * 0.02 + 0.005,
+      offset: Math.random() * 100,
+      color: `rgba(0, 80, 150, ${Math.random() * 0.08 + 0.03})` // 調整為微弱藍色
     });
   }
 }
@@ -141,34 +141,23 @@ function createLines() {
 function drawFlow() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   tick += 0.01;
-
   lines.forEach(line => {
     ctx.beginPath();
     ctx.lineWidth = 1;
     ctx.strokeStyle = line.color;
-
     for (let x = 0; x <= canvas.width; x += 10) {
-      // 使用正弦函數組合模擬海浪波紋
       const y = line.y + Math.sin(x * 0.002 + tick + line.offset) * line.amplitude + 
                 Math.sin(x * 0.005 + tick) * (line.amplitude / 2);
-      
       if (x === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
     }
     ctx.stroke();
   });
-
   requestAnimationFrame(drawFlow);
 }
-
-createLines();
 drawFlow();
 
-/**
- * 💡 在這裡自定義你的每一張卡片內容
- * img: 圖片網址
- * title: 顯示的文字內容
- */
+// ===== 2. 專案資料與隨機排版 =====
 const projectData = [
   { img: "images/IMG_0407.jpeg", title: "第一天到住宿報到，這是接下來一個月要待的床位" },
   { img: "images/IMG_0417.jpeg", title: "工作室地點樓下的小貓，總是出現在甜點店前附近的位置" },
@@ -176,19 +165,19 @@ const projectData = [
   { img: "images/IMG_0413.jpeg", title: "工作室牆上有好多海報" },
   { img: "images/IMG_0430.jpeg", title: "從宿舍看出去的樣子" },
   { img: "images/IMG_0440.jpeg", title: "第一天晚上的港邊散步" },
-  { img: "images/IMG_0437.jpeg", title: "第一天的晚餐" },
-  // ... 依此類推
+  { img: "images/IMG_0437.jpeg", title: "第一天的晚餐" }
 ];
 
 const container = document.getElementById("container");
 const isMobile = window.innerWidth < 768;
 const cardWidth = isMobile ? 160 : 260;
 const cardHeight = isMobile ? 140 : 220;
-const padding = 30; // 碰撞檢查的間距
+const padding = 40; 
+const positions = ["pos-top-left", "pos-top-right", "pos-bottom-left", "pos-bottom-right"];
 
 let placedBoxes = [];
 
-// 1. 初始化固定卡片的碰撞區
+// 初始化固定卡片
 document.querySelectorAll('.card.fixed').forEach(card => {
   placedBoxes.push({
     left: card.offsetLeft - padding,
@@ -196,36 +185,39 @@ document.querySelectorAll('.card.fixed').forEach(card => {
     top: card.offsetTop - padding,
     bottom: card.offsetTop + cardHeight + padding
   });
-  
-  // 綁定點擊事件
   card.addEventListener('click', toggleCard);
 });
 
-// 2. 動態生成隨機卡片
+// 生成隨機卡片
 projectData.forEach((item, i) => {
   const card = document.createElement("div");
   card.className = "card random";
+  const randomPos = positions[Math.floor(Math.random() * positions.length)];
+
   card.innerHTML = `
     <img src="${item.img}" loading="lazy">
-    <div class="overlay">${item.title}</div>
+    <div class="overlay ${randomPos}">${item.title}</div>
   `;
 
   card.addEventListener('click', toggleCard);
   container.appendChild(card);
 
-  // 3. 隨機排版算法 (避免碰撞)
+  // 💡 優化：確保圖片載入後才顯示 (解決圖片跑得慢的問題)
+  const imgElement = card.querySelector('img');
+  imgElement.onload = () => {
+    card.style.opacity = "1";
+  };
+
+  // 隨機排版
   let placedOK = false;
   let tries = 0;
   const safeLeft = isMobile ? 15 : 100;
-  const safeTop = isMobile ? 350 : 400;
+  const safeTop = isMobile ? 400 : 450;
 
   while (!placedOK && tries < 500) {
     let section = Math.floor(i / (isMobile ? 2 : 3)); 
-    let rangeX = window.innerWidth - cardWidth - (safeLeft * 2);
-    let x = safeLeft + Math.random() * rangeX;
-    
-    // 讓 y 軸根據索引分段增加，避免全部擠在頂部
-    let y = safeTop + (section * (isMobile ? 220 : 350)) + (Math.random() * 100);
+    let x = safeLeft + Math.random() * (window.innerWidth - cardWidth - (safeLeft * 2));
+    let y = safeTop + (section * (isMobile ? 240 : 380)) + (Math.random() * 120);
 
     let newBox = {
       left: x - padding,
@@ -234,7 +226,6 @@ projectData.forEach((item, i) => {
       bottom: y + cardHeight + padding
     };
 
-    // 碰撞偵測
     let collide = placedBoxes.some(box => {
       return !(newBox.right < box.left || newBox.left > box.right || 
                newBox.bottom < box.top || newBox.top > box.bottom);
@@ -242,20 +233,16 @@ projectData.forEach((item, i) => {
 
     if (!collide || tries === 499) {
       placedOK = true;
-      let rotate = (Math.random() - 0.5) * (isMobile ? 8 : 15);
-      
+      let rotate = (Math.random() - 0.5) * (isMobile ? 10 : 18);
       card.style.left = x + "px";
       card.style.top = y + "px";
       card.style.transform = `rotate(${rotate}deg)`;
-      card.style.opacity = "1";
-
       placedBoxes.push(newBox);
     }
     tries++;
   }
 });
 
-// 互動功能
 function toggleCard(e) {
   e.stopPropagation();
   const isActive = this.classList.contains('active');
@@ -269,11 +256,9 @@ function closeAll() {
 
 document.addEventListener('click', closeAll);
 
-// 自動調整容器總高度以利捲動
 const maxBottom = Math.max(...placedBoxes.map(b => b.bottom), window.innerHeight);
-container.style.height = (maxBottom + 100) + "px";
+container.style.height = (maxBottom + 150) + "px";
 
 </script>
-
 </body>
 </html>
