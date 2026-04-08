@@ -43,6 +43,22 @@ body {
   color: #222;
 }
 
+.bg-paragraph {
+  position: fixed;
+  width: 260px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(0,0,0,0.25);
+  letter-spacing: 0.05em;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 分散位置 */
+.p1 { top: 30%; left: 8%; transform: rotate(-2deg); }
+.p2 { top: 55%; left: 60%; transform: rotate(3deg); }
+.p3 { top: 75%; left: 20%; transform: rotate(-1deg); }
+  
 .container {
   position: relative;
   width: 100%;
@@ -104,19 +120,6 @@ body {
   .card { width: 160px; }
   .overlay { width: 110px; font-size: 10px; }
 
-.bg-paragraph {
-  position: fixed;
-  left: 10%;
-  top: 40%;
-  width: 260px;
-
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgba(0,0,0,0.35);
-
-  z-index: 0; /* 🔥 最底 */
-  pointer-events: none;
-}
 }
 </style>
 </head>
