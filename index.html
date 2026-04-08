@@ -24,16 +24,23 @@ body {
   pointer-events: none;
 }
 
-.bg-text {
+.header-fixed {
   position: fixed;
-  top: 10%;
-  left: 10%;
-  transform: translate(-50%, -50%);
-  font-size: 120px;
-  font-weight: bold;
-  color: rgba(0,0,0,0.05);
+  top: 20px;
+  left: 0;
+  width: 100%;
+  padding: 0 40px;
+  display: flex;
+  justify-content: space-between;
   pointer-events: none;
-  z-index: 0;
+  z-index: 999; /* 🔥 最高層 */
+}
+
+.title-left,
+.title-right {
+  font-size: 28px;
+  font-weight: 500;
+  color: #222;
 }
 
 .container {
@@ -96,6 +103,20 @@ body {
 @media (max-width: 768px) {
   .card { width: 160px; }
   .overlay { width: 110px; font-size: 10px; }
+
+.bg-paragraph {
+  position: fixed;
+  left: 10%;
+  top: 40%;
+  width: 260px;
+
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(0,0,0,0.35);
+
+  z-index: 0; /* 🔥 最底 */
+  pointer-events: none;
+}
 }
 </style>
 </head>
@@ -104,7 +125,10 @@ body {
   
 <canvas id="bg-canvas"></canvas>
   
-<div class="bg-text">ZHENGBIN</div>
+<div class="header-fixed">
+  <div class="title-left">ZHENBING DIARY 正濱日記</div>
+  <div class="title-right">2025.9.1–9.30</div>
+</div>
   
 <div class="container" id="container">
   <div class="card fixed" id="hero-1">
@@ -116,6 +140,12 @@ body {
     <img src="images/IMG_0417.jpeg">
     <div class="overlay pos-top-right">EDITORIAL: NEW VISION</div>
   </div>
+
+  <div class="bg-paragraph">
+  在這裡進行一個月的職旅換宿，認識了好多人。
+  在這裡進行一個月的職旅換宿，認識了好多人。
+</div>
+  
 </div>
 
 <script>
